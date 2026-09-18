@@ -1,7 +1,7 @@
 ---
 title: 이력서 프로젝트 요약
 icon: fas fa-diagram-project
-order: 5
+order: 2
 ---
 
 ## 반도체 장비 열관리 모사 시스템
