@@ -2,7 +2,6 @@
 title: 블로그 작성 연습
 date: 2026-08-24 19:00:00 +0900
 categories: [프로젝트]
-tags: [blog, test]
 math: true
 ---
 
