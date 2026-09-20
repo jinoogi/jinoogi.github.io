@@ -39,6 +39,7 @@ CATEGORIES = {
     "기타": ["MATE", "Weak driven learning"],
 }
 
+AVATAR_EMOJI_ID = "2a3b9c4a"  # 사용자의 아바타 커스텀 이모지 (70편 중 42회 사용)
 MAX_WIDTH = 1600
 IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg"}
 
@@ -165,14 +166,15 @@ class Migration:
             return
         date = self.post_date(list_name)
         post_path = self.posts / f"{date:%Y-%m-%d}-{slug}.md"
-        report = {"images": [], "missing": [], "callouts": 0}
+        report = {"images": [], "missing": [], "callouts": 0, "custom_emoji": []}
 
         body = md_path.read_text(encoding="utf-8")
         body = re.sub(r"\A\s*# .*\n+", "", body)
-        # 노션 커스텀 이모지는 notion:// 내부 주소라 밖에서는 깨진 이미지가 된다
-        body, report["custom_emoji"] = re.subn(r'^[ \t]*<img src="notion://[^>]*>[ \t]*\n', "", body, flags=re.M)
         body = self._migrate_images(body, name, slug, adir, dry_run, report)
-        body = self._convert_callouts(body, report)
+        body = self._convert_callouts(body, report)  # 콜아웃 안의 커스텀 이모지는 여기서 대체 아이콘으로 바뀐다
+        # 콜아웃 밖에 남은 커스텀 이모지: notion:// 내부 주소라 밖에서는 깨진 이미지가 되므로 걷어낸다
+        body, stray = re.subn(r'^[ \t]*<img src="notion://[^>]*>[ \t]*\n', "", body, flags=re.M)
+        report["custom_emoji"] += ["콜아웃 밖 → 제거"] * stray
         body = protect_inline_math(body)
 
         front = (f"---\ntitle: {name} 리뷰\ndate: {date:%Y-%m-%d %H:%M:%S} +0900\n"
@@ -190,8 +192,8 @@ class Migration:
         for m in report["missing"]:
             print(f"    [경고] 파일 없음: {m}")
         print(f"  콜아웃   : {report['callouts']}개 변환")
-        if report["custom_emoji"]:
-            print(f"  커스텀 이모지 : {report['custom_emoji']}개 제거 (해당 콜아웃 아이콘은 기본값 💡)")
+        for note in report["custom_emoji"]:
+            print(f"  커스텀 이모지 : {note}")
         if re.search(r"^- .+\n {4}\S|^- .+\n\s*\n {4}\S", body, flags=re.M):
             print("  토글 의심 : 들여쓴 내용이 딸린 목록 항목 있음 (PDF에서 ▼ 토글인지 확인)")
         print(f"  수식     : {'있음' if '$' in body else '없음'}")
@@ -255,6 +257,12 @@ class Migration:
         def repl(m):
             # 토글 안의 콜아웃은 4칸 들여쓰기된 채로 나온다. 그대로 두면 코드블록으로 렌더링된다.
             lines = textwrap.dedent(m.group(1)).strip("\n").splitlines()
+            custom = None
+            for l in list(lines):
+                mm = re.match(r'\s*<img src="notion://custom_emoji/[0-9a-f-]+/([0-9a-f-]+)', l)
+                if mm:
+                    custom = mm.group(1)
+                    lines.remove(l)
             while lines and not lines[0].strip():
                 lines.pop(0)
             icon = "💡"
@@ -262,8 +270,16 @@ class Migration:
                 icon = lines.pop(0).strip()
             while lines and not lines[0].strip():
                 lines.pop(0)
+            if custom:
+                # 노션 커스텀 이모지는 내보낼 수 없어 대체 아이콘을 쓴다 (2026-09-20 사용자 결정).
+                # 아바타 이모지는 주로 "느낀점"과 제목 없는 소감에 쓰였다 → 😲.
+                # 같은 아바타라도 Motivation·핵심요약 같은 다른 굵은 제목이 붙은 콜아웃에는 😲가 어색하므로 기본값을 쓴다.
+                first = lines[0].strip() if lines else ""
+                other_title = first.startswith("**") and "느낀점" not in first
+                icon = "😲" if custom.startswith(AVATAR_EMOJI_ID) and not other_title else "💡"
+                report["custom_emoji"].append(f"'{first[:20]}' 콜아웃 → {icon}")
             report["callouts"] += 1
-            return CALLOUT.format(icon=icon, content="\n".join(inner_breaks(lines)).strip("\n"))
+            return CALLOUT.format(icon=icon, content="\n".join(inner_breaks(tighten(lines))).strip("\n"))
 
         return re.sub(r"<aside>\s*\n(.*?)\n\s*</aside>", repl, body, flags=re.DOTALL)
 
@@ -302,23 +318,58 @@ def protect_inline_math(body):
     return "\n".join(out) + ("\n" if body.endswith("\n") else "")
 
 
+# 목록 기호는 뒤에 공백이 있을 때만 목록이다. `**굵게`로 시작하는 줄을 `* 항목`으로 오인하면 안 된다.
+_SPECIAL = re.compile(r"\s*([-*+]\s|[>#|<!]|\d+\.\s|```)")
+
+
+def _display_line(s):
+    # 수식 블록의 울타리(`$$` 단독 줄)이거나 한 줄짜리 디스플레이 수식(`$$...$$`만 있는 줄).
+    # `$$x$$가 입력`처럼 인라인 수식으로 시작하는 문장은 일반 텍스트다 — 이걸 울타리로 오인하면
+    # 그 뒤 줄들이 전부 "수식 블록 안"으로 취급되어 <br>이 빠진다 (VAE 토글에서 실제 발생).
+    return s == "$$" or (len(s) > 4 and s.startswith("$$") and s.endswith("$$") and s.count("$$") == 2)
+
+
+def _plain(line):
+    return bool(line.strip()) and not _SPECIAL.match(line) and not _display_line(line.strip())
+
+
+def _walk(lines):
+    """각 줄이 코드 울타리나 수식 블록의 안쪽인지 함께 돌려준다."""
+    fence = display = False
+    for i, line in enumerate(lines):
+        s = line.strip()
+        if s.startswith("```"):
+            fence = not fence
+        elif s == "$$":
+            display = not display
+        yield i, line, fence or display
+
+
+def tighten(lines):
+    """콜아웃 안쪽 전용: 일반 텍스트 줄 사이에 낀 빈 줄을 없앤다.
+
+    노션은 콜아웃 안의 각 줄을 별개 블록으로 내보내므로 md에는 줄마다 빈 줄이 끼지만,
+    노션 화면(과 PDF)에서는 제목과 본문이 빈틈없이 붙어 보인다. 목록·수식·코드 주변의 빈 줄은 문법상 필요하므로 남긴다.
+    """
+    out = []
+    for i, line, inside in _walk(lines):
+        nxt = next((l for l in lines[i + 1:] if l.strip()), "")
+        if not line.strip() and not inside and out and _plain(out[-1]) and _plain(nxt):
+            continue
+        out.append(line)
+    return out
+
+
 def inner_breaks(lines):
     """markdown="1" HTML 블록 안쪽 전용: 연속된 일반 텍스트 줄 사이에 <br>을 넣는다.
 
     _config.yml의 hard_wrap은 일반 본문에만 적용되고 HTML 블록 안쪽에는 닿지 않는다.
     그래서 콜아웃 안에서는 <br> 없이는 줄들이 한 줄로 붙는다. (반대로 일반 본문에 <br>을 넣으면 줄바꿈이 두 번 들어간다.)
     """
-    special = re.compile(r"\s*([-*+>#|<]|\d+\.\s|```|\$\$)")
-    plain = lambda l: bool(l.strip()) and not special.match(l)
-    out, fence, display = [], False, False
-    for i, line in enumerate(lines):
-        s = line.strip()
-        if s.startswith("```"):
-            fence = not fence
-        elif s.startswith("$$") and not (len(s) > 2 and s.endswith("$$")):
-            display = not display
+    out = []
+    for i, line, inside in _walk(lines):
         nxt = lines[i + 1] if i + 1 < len(lines) else ""
-        if not fence and not display and plain(line) and plain(nxt) and not line.rstrip().endswith("<br>"):
+        if not inside and _plain(line) and _plain(nxt) and not line.rstrip().endswith("<br>"):
             line = line.rstrip() + "<br>"
         out.append(line)
     return out

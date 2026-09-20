@@ -75,6 +75,15 @@ def main():
                 m = re.search(pattern, views[target])
                 ctx = re.sub(r"\s+", " ", views[target][max(0, m.start() - 30):m.end() + 50]).strip()
                 problems.append(f"{desc}: {len(hits)}건  예) …{ctx}…")
+        # kramdown은 `|`가 든 줄이 문단 첫 줄이면 표로 해석한다 (링크 제목의 "A | B", 수식 밖의 p(x|z) 등).
+        # 원본 md에 있는 표의 수와 결과물의 표 수가 다르면 그런 오인이 일어난 것이다. 코드블록(rouge)의 표는 제외.
+        src = next((repo / "_posts" / "ai_paper_reviews").glob(f"*-{slug}.md"), None)
+        if src:
+            md_tables = len(re.findall(r"(?m)^\|.*\|[ \t]*\n\|[ \t:|-]+\|[ \t]*$", src.read_text(encoding="utf-8")))
+            html_tables = len(re.findall(r"<table(?![^>]*rouge)", art))
+            if html_tables != md_tables:
+                problems.append(f"표 개수 불일치: 원본 md {md_tables}개, 결과물 {html_tables}개 "
+                                f"(`|`가 든 줄이 표로 오인됐을 수 있음 — `\\|`로 이스케이프)")
         n_math = len(re.findall(r"\\[\(\[]", art))
         if problems:
             failed += 1
