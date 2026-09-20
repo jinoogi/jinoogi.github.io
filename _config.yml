@@ -162,6 +162,7 @@ baseurl: ""
 # ------------ The following options are not recommended to be modified ------------------
 
 kramdown:
+  hard_wrap: true # 엔터 한 번을 줄바꿈으로 렌더링 (노션 원본의 Shift+Enter 줄 구조 보존)
   footnote_backlink: "&#8617;&#xfe0e;"
   syntax_highlighter: rouge
   syntax_highlighter_opts: # Rouge Options › https://github.com/jneen/rouge#full-options

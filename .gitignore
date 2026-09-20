@@ -36,3 +36,9 @@ sandbox.md
 
 # 각종 pdf
 *.pdf
+
+# 블로그 소스들 무시
+/blog_source
+
+# 필요없는 캐시파일
+__pycache__
