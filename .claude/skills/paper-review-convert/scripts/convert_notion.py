@@ -108,7 +108,11 @@ class Migration:
         pdf_dir = self.src / "pdf"
         if pdf_dir.exists():
             for f in pdf_dir.glob("*.pdf"):
+                # 노션 export 방식에 따라 파일명이 세 가지로 나온다:
+                #   <uuid>%2F<이름>.pdf  /  <uuid>_<이름>.pdf  /  <이름> <32자리 해시>.pdf
                 name = f.stem.split("%2F")[-1]
+                name = re.sub(r"^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}_", "", name)
+                name = re.sub(r"\s+[0-9a-f]{32}$", "", name)
                 out[norm(name)] = f
         return out
 
