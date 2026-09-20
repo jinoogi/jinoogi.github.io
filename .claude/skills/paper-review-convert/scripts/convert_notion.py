@@ -42,13 +42,15 @@ CATEGORIES = {
 MAX_WIDTH = 1600
 IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg"}
 
+# 닫는 태그를 들여쓰지 않는 이유: 내용이 목록으로 끝날 때 들여쓴 </div>는 목록 항목의 이어지는 내용으로
+# 해석되어 블록이 닫히지 않고, 그 뒤 문서 전체의 마크다운 처리가 꺼진다 (BatchNorm 글에서 실제로 발생).
 CALLOUT = """<div style="display:flex; gap:12px; background:rgba(135,131,120,0.15); padding:16px 20px; border-radius:8px; margin:16px 0;">
-  <div>{icon}</div>
-  <div markdown="1" style="flex:1; min-width:0;">
+<div>{icon}</div>
+<div markdown="1" style="flex:1; min-width:0;">
 
 {content}
 
-  </div>
+</div>
 </div>"""
 
 

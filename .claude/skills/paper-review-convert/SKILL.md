@@ -90,14 +90,16 @@ md export는 노션의 단 배치와 이미지 크기 정보를 잃는다. PDF�
   <figure style="width:35%; margin:0;">
     <img src="/assets/img/ai_paper_reviews/X/x-fig1.png" alt="설명" style="width:100%;">
   </figure>
-  <div markdown="1" style="width:63%;">
+<div markdown="1" style="width:63%;">
 
 오른쪽 칸의 글.<br>
 이 안의 이미지는 마크다운 `![]()`으로 써도 된다 (flex의 직접 자식이 아니므로).
 
-  </div>
+</div>
 </div>
 ```
+
+`markdown="1"` 요소의 여는 태그와 닫는 태그는 위처럼 **줄 맨 앞에 붙여 쓴다** (들여쓰지 않는다). 이유는 아래 규칙 목록 참고.
 
 md export가 캡션을 통째로 빠뜨리는 경우가 있다 (특히 링크가 든 캡션). PDF에 캡션이 보이는데 md에 없으면 PDF의 문구 그대로 복원한다.
 
@@ -122,7 +124,12 @@ python3 .claude/skills/paper-review-convert/scripts/convert_notion.py --mark-lay
 
 ```bash
 export PATH="/opt/homebrew/opt/ruby@3.4/bin:$PATH" SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk && tools/test.sh
+python3 .claude/skills/paper-review-convert/scripts/audit_build.py
 ```
+
+두 검사는 보는 것이 다르다. `tools/test.sh`는 깨진 링크만 본다. `audit_build.py`는 빌드된 HTML에서 **마크다운이 처리되지 않은 흔적**(글자로 노출된 `</div>`, 안 바뀐 `$$`·`## `·`![]()`, 중복 `<br>`)을 찾는다 — HTML 블록 하나가 안 닫혀서 그 뒤 문서 전체가 날것으로 나가는 사고는 test.sh를 그대로 통과하기 때문에 이 검사가 반드시 필요하다. 반드시 test.sh(빌드) 뒤에 실행한다.
+
+"특정 문자열이 결과물에 있는지"만 확인하고 통과라고 판단하지 않는다. 그런 검사는 페이지의 나머지가 망가져도 통과한다.
 
 실패하면 원인을 찾아 고치고 다시 돌린다. 고칠 수 없으면 실패 내용을 그대로 보고한다.
 
@@ -143,6 +150,7 @@ export PATH="/opt/homebrew/opt/ruby@3.4/bin:$PATH" SDKROOT=/Library/Developer/Co
 - **태그 미사용**: front matter에 `tags`를 넣지 않는다. 태그가 하나라도 생기면 태그 페이지가 생성되고, 삭제된 `/tags/` 목록 페이지를 링크해서 빌드 검사가 실패한다.
 - **HTML 블록 앞뒤에는 빈 줄**: 빈 줄 없이 붙이면 뒤따르는 마크다운이 HTML 블록에 빨려 들어가 렌더링되지 않는다.
 - **HTML 블록 안의 마크다운**: `markdown="1"` 속성이 있는 요소 안에서만 처리된다 (콜아웃 템플릿 참고). 안쪽 내용은 4칸 이상 들여쓰지 않는다 (코드블록이 된다).
+- **`markdown="1"` 요소의 닫는 태그를 들여쓰지 않는다**: 안쪽 내용이 목록으로 끝나는데 닫는 태그가 `  </div>`처럼 들여써져 있으면, kramdown이 그 줄을 마지막 목록 항목의 이어지는 내용으로 삼켜서 글자 그대로 출력한다. 블록이 닫히지 않으므로 **그 뒤 문서 전체가 마크다운 처리 없이 날것으로 나간다** (제목은 `## `, 수식은 `$$`, 이미지는 `![]()` 그대로). BatchNorm 글에서 "느낀점" 콜아웃이 불릿 목록으로 끝나면서 실제로 발생했고, test.sh는 이걸 잡지 못했다. 여는·닫는 태그 모두 줄 맨 앞에 쓴다.
 - **줄바꿈 `<br>`은 위치에 따라 정반대다**: `_config.yml`에 `kramdown.hard_wrap: true`가 켜져 있어 **일반 본문**에서는 엔터 한 번이 그대로 줄바꿈으로 렌더링된다. 여기에 `<br>`을 더하면 줄바꿈이 두 번 들어가므로 넣지 않는다. 반면 **`markdown="1"` HTML 블록 안쪽**(콜아웃, `<details>`, 2단 구성의 텍스트 칸)에는 hard_wrap이 닿지 않아서, 줄 단위로 끊으려면 줄 끝에 `<br>`을 직접 붙여야 한다 (문단의 마지막 줄 제외). 콜아웃은 스크립트가 처리하지만, 직접 만드는 블록은 네가 챙긴다. 두 경우 모두 실제 빌드 결과로 검증된 동작이다.
 - **미래 날짜 금지**: `date`가 빌드 시점보다 미래면 글이 조용히 누락된다. 스크립트가 보정하지만 직접 고칠 때 주의한다.
 - **카테고리명은 매핑표와 글자 하나까지 동일하게**: 오타는 새 카테고리를 만든다.
