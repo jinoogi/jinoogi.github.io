@@ -122,7 +122,7 @@ LLM이 자기 행동의 결과를 예측할 수 있는지 확인하는 실험을
 WMA는 정책모델 $$\theta$$, 월드모델 $$\phi$$, 가치함수 $$V$$로 구성됨.
 추론시에는 $$\text{top-p}$$ 디코딩을 이용해 $$\{a_t^1,a_t^2,...,a_t^k\} \sim \pi_\theta(\cdot \mid o_t)$$ 여러개의 행동 후보들을 샘플링하고, 환경모델을 돌려서 세트로 $$\{\tilde{o}^1_{t+1},\tilde{o}^2_{t+1},...,\tilde{o}^k_{t+1}\}$$ 추상화된 다음 관측을 샘플링함.
 
-이후 가치함수로 $$\hat{a}_t=\argmax_{a_t\in \{a_t^1,a_t^2,...,a_t^k\}} V(I,o_t,a_t^i,\tilde{o}^i_{t+1})$$ greedy하게 최적의 행동을 선택함.
+이후 가치함수로 $$\hat{a}_t=\operatorname*{arg\,max}_{a_t\in \{a_t^1,a_t^2,...,a_t^k\}} V(I,o_t,a_t^i,\tilde{o}^i_{t+1})$$ greedy하게 최적의 행동을 선택함.
 가치함수는 $$V(I,o_t,a_t^i,\tilde{o}^i_{t+1})$$  이렇게 일반적인 상태가치함수랑 다르게 생겼고, 이것도 모델이라고 함.
 이렇게 world model을 이용해서 추론하면 보통 GPT같은 closed 모델을 사용하는 정책모델을 학습하지 않고도 웹 에이전트의 선택을 최적화 할 수 있음.
 

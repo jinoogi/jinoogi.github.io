@@ -64,7 +64,7 @@ LLM의 응답을 업그레이드하는 방법에는 2가지가 있다고 함.
 해결하고자 하는 목표를 말이 아니라 수식으로 표현하면
 
 $$
-\theta^{*}_{q,a^*(q)}(N)=\argmax_\theta(\mathbb{E}_{y \sim Target(\theta,N,q)}[\mathbf{1}_{y=y^*(q)}])
+\theta^{*}_{q,a^*(q)}(N)=\operatorname*{arg\,max}_\theta(\mathbb{E}_{y \sim Target(\theta,N,q)}[\mathbf{1}_{y=y^*(q)}])
 $$
 
 이런식으로 프롬프트 $$q$$와 컴퓨팅 $$N$$이 주어졌을때 답변의 정확도를 최대화하는 하이퍼파라미터 $$\theta$$를 구하는 문제로 정의함.
