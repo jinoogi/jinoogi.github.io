@@ -20,7 +20,7 @@ order: 2
 > 웨이퍼 온도관리 문제를 CFD로 해석하고, 해석결과를 바탕으로 냉각시스템을 직접 설계∙제작함.
 > 장치에 PI 제어를 구현한 뒤, 쌓이는 실험 데이터의 분석까지 LLM 에이전트로 도구화한 end-to-end 프로젝트.
 
-## 창의제품설계(FLEXTUDY)
+## [창의제품설계(FLEXTUDY)](/posts/flextudy/)
 
 <iframe src="https://www.youtube.com/embed/j7272pe8qn4" style="width:100%; aspect-ratio:16/9; border:0;" allowfullscreen></iframe>
 
