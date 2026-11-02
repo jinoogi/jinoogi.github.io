@@ -4,7 +4,7 @@ icon: fas fa-diagram-project
 order: 2
 ---
 
-## 반도체 장비 열관리 모사 시스템
+## [반도체 장비 열관리 모사 시스템](/posts/wafer-cooling-system/)
 
 <div style="display:flex; gap:12px; align-items:flex-start;">
   <figure style="width:44%; margin:0;">

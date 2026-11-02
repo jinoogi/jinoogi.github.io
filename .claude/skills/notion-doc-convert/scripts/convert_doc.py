@@ -129,7 +129,8 @@ class Converter:
         for f in [*self.src.glob("*.pdf"), *self.src.glob("pdf/*.pdf")]:
             # 노션 export 방식에 따라 파일명이 세 가지로 나온다:
             #   <uuid>%2F<이름>.pdf  /  <uuid>_<이름>.pdf  /  <이름> <32자리 해시>.pdf
-            name = unicodedata.normalize("NFC", f.stem).split("%2F")[-1]
+            # 첫 번째 형식은 이름도 %인코딩되어 한글 제목이 `%EC%9B%A8...`로 온다 (웨이퍼냉각시스템에서 발견)
+            name = unicodedata.normalize("NFC", unquote(f.stem)).split("/")[-1]
             name = re.sub(r"^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}_", "", name)
             name = re.sub(r"\s+[0-9a-f]{32}$", "", name)
             out[norm(name)] = f
