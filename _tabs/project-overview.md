@@ -41,7 +41,7 @@ order: 2
     <img src="/assets/img/project-overview/semiconductor-process.png" alt="MOSFET 구조 손그림 정리" style="width:100%;">
   </figure>
   <figure style="width:35%; margin:0;">
-    <img src="/assets/img/project-overview/semiconductor-fab-practice.jpg" alt="반도체 공정실습 사진" style="width:100%;">
+    <!-- <img src="/assets/img/project-overview/semiconductor-fab-practice.jpg" alt="반도체 공정실습 사진" style="width:100%;"> -->
   </figure>
 </div>
 
