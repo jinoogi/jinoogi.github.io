@@ -47,10 +47,9 @@ order: 2
 
 > 기초반도체소자와 공정 이론에 대해 학습하고, 공정실습을 통해 구조형성과 장비 사용경험을 쌓음.
 
-## 크래프톤 정글 POKECODE
+## [크래프톤 정글 POKECODE](https://jungle.krafton.com/news/54)
 
 <iframe src="https://www.youtube.com/embed/grYkZ8pmTwQ" style="width:100%; aspect-ratio:16/9; border:0;" allowfullscreen></iframe>
-
 > AI 코드 피드백과 실시간 협업을 제공하는 실제 서비스수준의 종합알고리즘학습 플랫폼 POKE CODE 개발.
 > 코드공유에디터, AI 피드백시스템, 음성통화등 핵심기능을 구현하고 사용자 UI 구현에 참여함.
 
