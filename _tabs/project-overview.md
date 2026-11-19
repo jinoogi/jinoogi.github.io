@@ -53,7 +53,7 @@ order: 2
 > AI 코드 피드백과 실시간 협업을 제공하는 실제 서비스수준의 종합알고리즘학습 플랫폼 POKE CODE 개발.
 > 코드공유에디터, AI 피드백시스템, 음성통화등 핵심기능을 구현하고 사용자 UI 구현에 참여함.
 
-## 개인화 embodied agent 연구
+## [개인화 embodied agent 연구](/posts/polar/)
 
 <div style="display:flex; gap:12px; align-items:flex-start;">
   <figure style="width:44%; margin:0;">
